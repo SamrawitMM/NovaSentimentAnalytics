@@ -1014,3 +1014,38 @@ def plot_monthly_trends_overtime(text_data, exclude_year=None, ylim_overall=None
         # Show the chart for the specific year trend
         plt.tight_layout()
         plt.show()
+
+
+import matplotlib.pyplot as plt
+
+def analyze_headline_lengths(data, headline_column):
+    """
+    Analyze and visualize the distribution of headline lengths in a dataset.
+
+    Parameters:
+        data (pd.DataFrame): The DataFrame containing the headline data.
+        headline_column (str): The name of the column with headline text.
+    
+    Returns:
+        pd.Series: Descriptive statistics of headline lengths.
+    """
+    # Calculate headline lengths and their statistics
+    data['headline_length'] = data[headline_column].apply(len)
+    headline_stats = data['headline_length'].describe()
+    print("Headline Length Statistics:\n", headline_stats)
+
+    # Plot the histogram
+    plt.figure(figsize=(10, 6))
+    plt.hist(data['headline_length'], bins=20, color='skyblue', edgecolor='black', alpha=0.7)
+
+    # Add labels and title
+    plt.title('Distribution of Headline Lengths', fontsize=14)
+    plt.xlabel('Headline Length', fontsize=12)
+    plt.ylabel('Frequency', fontsize=12)
+    plt.grid(axis='y', linestyle='--', alpha=0.7)
+
+    # Show the plot
+    plt.tight_layout()
+    plt.show()
+
+    return headline_stats
