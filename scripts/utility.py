@@ -13,6 +13,7 @@ from sklearn.decomposition import LatentDirichletAllocation
 import matplotlib.pyplot as plt
 from bertopic import BERTopic
 from sentence_transformers import SentenceTransformer
+import talib
 
 
 # Ensure you download necessary NLTK resources
@@ -107,30 +108,6 @@ def sentiment_analysis_parallel(df, column):
     return df  # Return the updated DataFrame
 
 
-# Plot articles published per day of the week to see the trend
-def plot_articles_per_day(articles_per_day_avg):
-    
-    plt.figure(figsize=(7, 6))
-    articles_per_day_avg.plot(kind='bar', color='skyblue', edgecolor='black')
-    plt.title("Average Articles Published Per Day of the Week", fontsize=14)
-    plt.xlabel("Day of the Week", fontsize=12)
-    plt.ylabel("Average Number of Articles", fontsize=12)
-    plt.xticks(rotation=45)  # Rotate x-axis labels for better readability
-    plt.tight_layout()
-    plt.show()
-
-# Plot articles published per year
-def plot_articles_per_year(articles_per_year_avg):
-
-    plt.figure(figsize=(7, 6))
-    articles_per_year_avg.plot(kind='bar', color='lightgreen', edgecolor='black')
-    plt.title("Average Articles Published Per Year", fontsize=14)
-    plt.xlabel("Year", fontsize=12)
-    plt.ylabel("Average Number of Articles", fontsize=12)
-    plt.xticks(rotation=45)
-    plt.tight_layout()
-    plt.show()
-
 # Calculates the articles per day of the week and for the year to make the value ready for the plot
 def calculate_and_plot(text_data):
     
@@ -163,109 +140,6 @@ def calculate_and_plot(text_data):
     return articles_per_day_avg, articles_per_year_avg
 
 
-
-# Plot number of articles published per month
-def plot_monthly_trend(text_data):
-
-    # Compute the average number of articles per month (January to December)
-    articles_monthly_avg = text_data.groupby('month').size() / 136
-
-    # Plotting the monthly trend
-    plt.figure(figsize=(8, 6))  # Adjust figure size for better visibility
-    articles_monthly_avg.plot(kind='bar', color='dodgerblue', edgecolor='black')
-    plt.title("Average Articles Published Per Month", fontsize=14)
-    plt.xlabel("Month", fontsize=12)
-    plt.ylabel("Average Number of Articles", fontsize=12)
-    plt.xticks(ticks=range(12), labels=['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                                        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'], rotation=45)
-    plt.tight_layout()
-    plt.show()
-
-# Plot day of the month published articles 
-def plot_daily_trend(text_data):
-    
-    # Compute the average number of articles per day of the month (1 to 30)
-    articles_daily_avg = text_data.groupby('day').size() / 3955
-
-    # Plotting the daily trend of the month
-    plt.figure(figsize=(8, 6))  # Adjust figure size for better visibility
-    articles_daily_avg.plot(kind='bar', color='tomato', edgecolor='black')
-    plt.title("Average Articles Published Per Day (1-30)", fontsize=14)
-    plt.xlabel("Day of the Month", fontsize=12)
-    plt.ylabel("Average Number of Articles", fontsize=12)
-    plt.xticks(ticks=range(30), labels=range(1, 31), rotation=45)
-    plt.tight_layout()
-    plt.show()
-
-
-
-# Plot year trend over the months
-def plot_year(text_data):
-   
-
-    # Group by year and month to count articles
-    monthly_counts = text_data.groupby(['year', 'month']).size().reset_index(name='count')
-
-    # Convert the 'month' column to integers (in case it's a float)
-    monthly_counts['month'] = monthly_counts['month'].astype(int)
-
-    # Add month name for better labeling based on the 'month' column
-    monthly_counts['month_name'] = monthly_counts['month'].apply(lambda x: pd.to_datetime(f'{x}', format='%m').strftime('%B'))
-
-    # Reorder months to appear in calendar order
-    monthly_counts['month_name'] = pd.Categorical(monthly_counts['month_name'], 
-                                                categories=['January', 'February', 'March', 'April', 'May', 'June', 
-                                                            'July', 'August', 'September', 'October', 'November', 'December'],
-                                                ordered=True)
-
-    # Sort the values by 'year' and 'month_name'
-    monthly_counts = monthly_counts.sort_values(by=['year', 'month_name'])
-
-    # Pivot the data for line plotting
-    monthly_counts_pivot = monthly_counts.pivot(index='month_name', columns='year', values='count')
-
-    # Plot the line graph for each year
-    plt.figure(figsize=(12, 6))
-    for year in monthly_counts_pivot.columns:
-        if year != 2020:  # Skip the year 2020 for this plot
-            plt.plot(monthly_counts_pivot.index, monthly_counts_pivot[year], label=f'Year {int(year)}', marker='')
-
-    # Title and labels for the overall trend plot
-    plt.title('Monthly Article Publication Trends by Year')
-    plt.xlabel('Months')
-    plt.ylabel('Number of Articles')
-    plt.xticks(rotation=45)  # Rotate x-axis labels for readability
-
-    # Set y-axis range from 0 to 1250 (you can adjust this based on your data)
-    # plt.ylim(0, 1250)
-
-    plt.legend(title="Year", bbox_to_anchor=(1.05, 1), loc='upper left')
-
-    # Show the overall trend chart
-    plt.tight_layout()
-    plt.show()
-
-    # Plot for the year 2020 separately
-    plt.figure(figsize=(12, 6))
-    plt.plot(monthly_counts_pivot.index, monthly_counts_pivot[2020], label='Year 2020', color='blue', marker='o')
-
-    # Title and labels for 2020 plot
-    plt.title('Monthly Article Publication Trend for Year 2020')
-    plt.xlabel('Months')
-    plt.ylabel('Number of Articles')
-    plt.xticks(rotation=45)  # Rotate x-axis labels for readability
-
-    # Set y-axis range from 0 to 2000 (adjust as necessary)
-    # plt.ylim(0, 2000)
-
-    # Legend
-    plt.legend(title="Year", bbox_to_anchor=(1.05, 1), loc='upper left')
-
-    # Show the chart for 2020 trend
-    plt.tight_layout()
-    plt.show()
-
-
 # Plot top publishers that published more articles
 def top_publishers(text_data):
     # Count the number of articles per publisher
@@ -274,15 +148,8 @@ def top_publishers(text_data):
     # Select the top 15 publishers
     top_15_publishers = articles_per_publisher.head(10)
 
-    # Step 3: Plot the pie chart
-    plt.figure(figsize=(10, 8))
-    plt.pie(top_15_publishers, labels=top_15_publishers.index, autopct='%1.1f%%', startangle=140, colors=plt.cm.Paired.colors)
-    plt.title('Top 10 Publishers and Proportion of Articles Published')
-    plt.axis('equal')  # Equal aspect ratio ensures that pie chart is circular.
 
-    # Show the pie chart
-    plt.tight_layout()
-    plt.show()
+    return top_15_publishers
     
 
 # Top 15 frequent headlines
@@ -293,36 +160,8 @@ def top_headline(text_data):
     # Select the top 15 headlines
     top_15_headlines = headline_counts.head(15)
 
-    # Plot the data
-    plt.figure(figsize=(12, 8))
-    top_15_headlines.plot(kind='bar', color='orange')
-    plt.title('Top 15 Headlines and Their Occurrences')
-    plt.xlabel('Headline')
-    plt.ylabel('Number of Occurrences')
-    plt.xticks(rotation=45, ha='right')  # Rotate labels for better readability
-    plt.grid(True)
-    plt.show()
 
-
-# Visualize sentiment classes in a graph
-def plot_sentiment(sentiment_counts, company):
-    # Custom colors for each sentiment
-    colors = {'positive': 'green', 'negative': 'red', 'neutral': 'grey'}
-
-    # Plot the sentiment distribution
-    plt.figure(figsize=(6, 4))
-    ax = sentiment_counts.plot(kind='bar', color=[colors[sentiment] for sentiment in sentiment_counts.index])
-    plt.title('Sentiment Distribution of ' + company + 'Headlines')
-    plt.xlabel('Sentiment')
-    plt.ylabel('Number of Articles')
-    plt.xticks(rotation=0)
-
-    # Add the count above each bar
-    for i, count in enumerate(sentiment_counts):
-        ax.text(i, count + 5, str(count), ha='center', va='bottom', fontsize=10)
-
-    plt.show()
-
+    return top_15_headlines
 
 
 # Function to extract and format the date
@@ -378,52 +217,12 @@ def preprocess_dataset(dataframe, date_column):
 
 
 
-# Plot articles published per hour
-def analyze_articles_per_hour(dataframe):
-
-    # Count the number of articles published per hour
-    articles_per_hour = dataframe['hour'].value_counts().sort_index() / 24
-
-    # Display the result
-    print("Articles Published Per Hour:")
-    print(articles_per_hour)
-
-    # Plot the distribution
-    plt.figure(figsize=(10, 6))
-    plt.bar(articles_per_hour.index, articles_per_hour.values, color='orange')
-    plt.title('Articles Published Per Hour')
-    plt.xlabel('Hour of the Day')
-    plt.ylabel('Number of Articles')
-    plt.xticks(range(0, 24))  # Ensure all hours are displayed
-    plt.tight_layout()
-    plt.show()
-
-    return articles_per_hour
-
-
-# PM and AM distirubtion as the majority of the hour consentrates in approximately in a similar hour
 def analyze_am_pm_distribution(articles_per_hour):
 
     # Calculate the number of articles in AM and PM
     am_articles = articles_per_hour.loc[0:11].sum()  # Sum of articles from 0 to 11 (AM)
     pm_articles = articles_per_hour.loc[12:23].sum()  # Sum of articles from 12 to 23 (PM)
 
-    # Prepare data for the pie chart
-    labels = ['AM', 'PM']
-    values = [am_articles, pm_articles]
-
-    # Plot pie chart
-    plt.figure(figsize=(8, 8))
-    plt.pie(
-        values,
-        labels=labels,
-        autopct='%1.1f%%',
-        startangle=90,
-        colors=['skyblue', 'orange']
-    )
-    plt.title('Articles Published by AM/PM')
-    plt.tight_layout()
-    plt.show()
 
     # Print the counts
     print(f"AM Articles: {am_articles}")
@@ -491,15 +290,6 @@ def analyze_email_domains(text_data, email_column, top_n=10):
     print("Top domains:")
     print(domain_counts.head(top_n))
 
-    # Visualize top domains
-    plt.figure(figsize=(10, 6))
-    domain_counts.head(top_n).plot(kind='bar', color='lightgreen')
-    plt.title(f"Top {top_n} Email Domains Contributing to the News Feed")
-    plt.xlabel("Domain")
-    plt.ylabel("Count of Articles")
-    plt.xticks(rotation=45, ha="right")
-    plt.tight_layout()
-    plt.show()
 
     return domain_counts
 
@@ -546,13 +336,7 @@ def perform_topic_modeling(
 
     # Visualize Topic Distribution
     topic_counts = text_data_sampled['dominant_topic'].value_counts()
-    plt.figure(figsize=(8, 6))
-    topic_counts.plot(kind='bar', color='coral')
-    plt.title("Distribution of Topics in Headlines")
-    plt.xlabel("Topic")
-    plt.ylabel("Number of Headlines")
-    plt.xticks(rotation=0)
-    plt.show()
+ 
 
     # Save results (optional)
     if output_file:
@@ -561,77 +345,6 @@ def perform_topic_modeling(
 
     return text_data_sampled, topics
 
-
-# Plot of all the years and the trend of the month 
-def plot_monthly_trends_overtime(text_data, exclude_year=None, ylim_overall=None, ylim_2020=None):
-    
-    # Group by year and month to count articles
-    monthly_counts = text_data.groupby(['year', 'month']).size().reset_index(name='count')
-
-    # Convert the 'month' column to integers
-    monthly_counts['month'] = monthly_counts['month'].astype(int)
-
-    # Add month name for better labeling
-    monthly_counts['month_name'] = monthly_counts['month'].apply(
-        lambda x: pd.to_datetime(f'{x}', format='%m').strftime('%B')
-    )
-
-    # Reorder months to appear in calendar order
-    monthly_counts['month_name'] = pd.Categorical(
-        monthly_counts['month_name'], 
-        categories=['January', 'February', 'March', 'April', 'May', 'June', 
-                    'July', 'August', 'September', 'October', 'November', 'December'],
-        ordered=True
-    )
-
-    # Sort the values by 'year' and 'month_name'
-    monthly_counts = monthly_counts.sort_values(by=['year', 'month_name'])
-
-    # Pivot the data for line plotting
-    monthly_counts_pivot = monthly_counts.pivot(index='month_name', columns='year', values='count')
-
-    # Plot the line graph for each year (excluding the specified year)
-    plt.figure(figsize=(12, 6))
-    for year in monthly_counts_pivot.columns:
-        if exclude_year is None or year != exclude_year:
-            plt.plot(monthly_counts_pivot.index, monthly_counts_pivot[year], label=f'Year {int(year)}', marker='')
-
-    # Title and labels for the overall trend plot
-    plt.title('Monthly Article Publication Trends by Year')
-    plt.xlabel('Months')
-    plt.ylabel('Number of Articles')
-    plt.xticks(rotation=45)
-
-    # Set y-axis range if specified
-    if ylim_overall:
-        plt.ylim(ylim_overall)
-
-    plt.legend(title="Year", bbox_to_anchor=(1.05, 1), loc='upper left')
-
-    # Show the overall trend chart
-    plt.tight_layout()
-    plt.show()
-
-    # Plot for the excluded year separately
-    if exclude_year in monthly_counts_pivot.columns:
-        plt.figure(figsize=(12, 6))
-        plt.plot(monthly_counts_pivot.index, monthly_counts_pivot[exclude_year], label=f'Year {exclude_year}', color='blue', marker='o')
-
-        # Title and labels for the specific year plot
-        plt.title(f'Monthly Article Publication Trend for Year {exclude_year}')
-        plt.xlabel('Months')
-        plt.ylabel('Number of Articles')
-        plt.xticks(rotation=45)
-
-        # Set y-axis range if specified
-        if ylim_2020:
-            plt.ylim(ylim_2020)
-
-        plt.legend(title="Year", bbox_to_anchor=(1.05, 1), loc='upper left')
-
-        # Show the chart for the specific year trend
-        plt.tight_layout()
-        plt.show()
 
 
 # Headline descriptive statistics and histogram plot
@@ -656,3 +369,90 @@ def analyze_headline_lengths(data, headline_column):
     plt.show()
 
     return headline_stats
+
+
+
+def preprocess_stock_data(df):
+    """
+    Analyze stock data using TA-Lib technical indicators and return the modified DataFrame.
+
+    Parameters:
+        df (pd.DataFrame): DataFrame containing stock data with columns 'Date', 'Open', 'High', 'Low', 'Close', 'Adj Close', 'Volume'.
+
+    Returns:
+        pd.DataFrame: DataFrame with added columns for SMA, EMA, RSI, MACD.
+    """
+    
+
+    # Technical Indicators
+    df['SMA_50'] = talib.SMA(df['Close'], timeperiod=50)
+    df['EMA_50'] = talib.EMA(df['Close'], timeperiod=50)
+    df['RSI'] = talib.RSI(df['Close'], timeperiod=14)
+    df['MACD'], df['MACD_signal'], df['MACD_hist'] = talib.MACD(df['Close'], fastperiod=12, slowperiod=26, signalperiod=9)
+
+    return df
+
+
+
+def average_article_overtime(df):
+    articles_per_day_total = df.groupby('day').size()
+    articles_per_year_total = df.groupby('year').size()
+    
+    
+
+    unique_weeks = df[['year', 'day_of_week']].drop_duplicates().shape[0]
+    unique_month_days = df[['year', 'month', 'day']].drop_duplicates().shape[0]
+    unique_months = df[['year', 'month']].drop_duplicates().shape[0]
+    unique_years = df[['year']].drop_duplicates().shape[0]
+    unique_hours = df[['hour']].drop_duplicates().shape[0]
+
+    articles_per_day_total = df.groupby('day_of_week').size()
+    articles_per_year_total = df.groupby('year').size()
+    articles_daily_total = df.groupby('day').size() 
+    articles_montly_total = df.groupby('month').size()
+    articles_per_hour = df['hour'].value_counts().sort_index()
+
+
+    # Calculate the average articles per day, month, and year
+    avg_article_per_day_week = articles_per_day_total / unique_weeks
+    avg_article_per_month = articles_montly_total / unique_months
+    avg_article_per_year = articles_per_year_total / unique_years
+    articles_daily_avg = articles_daily_total/ unique_month_days
+    avg_articles_per_hour = articles_per_hour / unique_hours
+
+    
+    ordered_days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+
+    # Reindex to include all days of the week, filling missing days with 0
+    articles_per_day_of_week_avg = avg_article_per_day_week.reindex(ordered_days, fill_value=0)
+
+    ordered_months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                                        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    
+    articles_per_month_avg = avg_article_per_month.reindex(ordered_months, fill_value=0)
+
+    # Print results
+    # print("Average Articles Published Per Day:")
+    # print(avg_article_per_day_week)
+    print("\nAverage Articles Published Per Day of the Week (Monday to Sunday):")
+    print(articles_per_day_of_week_avg)
+
+    print("\nAverage Articles Published Per Month:")
+    print(avg_article_per_month)
+
+    print("\nAverage Articles Published Per Year:")
+    print(avg_article_per_year)
+
+    # print("\nAverage Articles Published Per Day of the Week (Monday to Sunday):")
+    # print(articles_per_day_of_week_avg)
+
+    print("\Total Articles Each Year:")
+    print(articles_per_year_total)
+
+    print("\Average Articles Each Day in a Month ( 1 to 30):")
+    print(articles_daily_avg)
+
+    print("\Average Articles Each hour ( 1 to 24):")
+    print(avg_articles_per_hour)
+
+    return articles_per_day_of_week_avg, avg_article_per_month, avg_article_per_year, articles_per_year_total, articles_daily_avg, avg_articles_per_hour
