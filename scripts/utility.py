@@ -935,3 +935,82 @@ def plot_top_headlines_bar_chart(text_data, top_n=15):
 
 # Example usage:
 # plot_top_headlines_bar_chart(text_data, top_n=15)
+
+
+def plot_monthly_trends_overtime(text_data, exclude_year=None, ylim_overall=None, ylim_2020=None):
+    """
+    Plots monthly article publication trends by year and a separate plot for a specific year.
+
+    Parameters:
+        text_data (pd.DataFrame): DataFrame containing 'year' and 'month' columns.
+        exclude_year (int, optional): Year to exclude from the overall trend plot.
+        ylim_overall (tuple, optional): Y-axis limits for the overall trend plot (min, max).
+        ylim_2020 (tuple, optional): Y-axis limits for the 2020 trend plot (min, max).
+    """
+    # Group by year and month to count articles
+    monthly_counts = text_data.groupby(['year', 'month']).size().reset_index(name='count')
+
+    # Convert the 'month' column to integers
+    monthly_counts['month'] = monthly_counts['month'].astype(int)
+
+    # Add month name for better labeling
+    monthly_counts['month_name'] = monthly_counts['month'].apply(
+        lambda x: pd.to_datetime(f'{x}', format='%m').strftime('%B')
+    )
+
+    # Reorder months to appear in calendar order
+    monthly_counts['month_name'] = pd.Categorical(
+        monthly_counts['month_name'], 
+        categories=['January', 'February', 'March', 'April', 'May', 'June', 
+                    'July', 'August', 'September', 'October', 'November', 'December'],
+        ordered=True
+    )
+
+    # Sort the values by 'year' and 'month_name'
+    monthly_counts = monthly_counts.sort_values(by=['year', 'month_name'])
+
+    # Pivot the data for line plotting
+    monthly_counts_pivot = monthly_counts.pivot(index='month_name', columns='year', values='count')
+
+    # Plot the line graph for each year (excluding the specified year)
+    plt.figure(figsize=(12, 6))
+    for year in monthly_counts_pivot.columns:
+        if exclude_year is None or year != exclude_year:
+            plt.plot(monthly_counts_pivot.index, monthly_counts_pivot[year], label=f'Year {int(year)}', marker='')
+
+    # Title and labels for the overall trend plot
+    plt.title('Monthly Article Publication Trends by Year')
+    plt.xlabel('Months')
+    plt.ylabel('Number of Articles')
+    plt.xticks(rotation=45)
+
+    # Set y-axis range if specified
+    if ylim_overall:
+        plt.ylim(ylim_overall)
+
+    plt.legend(title="Year", bbox_to_anchor=(1.05, 1), loc='upper left')
+
+    # Show the overall trend chart
+    plt.tight_layout()
+    plt.show()
+
+    # Plot for the excluded year separately
+    if exclude_year in monthly_counts_pivot.columns:
+        plt.figure(figsize=(12, 6))
+        plt.plot(monthly_counts_pivot.index, monthly_counts_pivot[exclude_year], label=f'Year {exclude_year}', color='blue', marker='o')
+
+        # Title and labels for the specific year plot
+        plt.title(f'Monthly Article Publication Trend for Year {exclude_year}')
+        plt.xlabel('Months')
+        plt.ylabel('Number of Articles')
+        plt.xticks(rotation=45)
+
+        # Set y-axis range if specified
+        if ylim_2020:
+            plt.ylim(ylim_2020)
+
+        plt.legend(title="Year", bbox_to_anchor=(1.05, 1), loc='upper left')
+
+        # Show the chart for the specific year trend
+        plt.tight_layout()
+        plt.show()
