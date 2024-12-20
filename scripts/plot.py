@@ -1,8 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-
-import pandas as pd
-import matplotlib.pyplot as plt
+import talib
 
 def plot_stock_data(df, date_column='date', stock_value_column='stock_value', title='Stock Value Over Time'):
     """
@@ -35,9 +33,6 @@ def plot_stock_data(df, date_column='date', stock_value_column='stock_value', ti
     plt.show()
 
 
-import talib
-import pandas as pd
-import matplotlib.pyplot as plt
 
 def analyze_stock_data(df):
     """
