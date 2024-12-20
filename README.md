@@ -39,19 +39,24 @@ This repository contains a comprehensive analysis of stock market data with a fo
 
 ## Requirements
 
-- Python 3.x
+- Python 3.9
 - pandas
+- nltk
+- textblob
+- joblib
+- numpy
 - matplotlib
-- seaborn
+- sentence-transformers
 - scikit-learn
 - bertopic
+- TA-Lib
 
 ## Installation
 
 1. Clone this repository:
     ```bash
-    git clone <repository_url>
-    cd <repository_directory>
+    git clone https://github.com/SamrawitMM/NovaSentimentAnalytics.git
+    cd NovaSentimentAnalytics
     ```
 2. Install the required dependencies:
     ```bash
@@ -60,8 +65,8 @@ This repository contains a comprehensive analysis of stock market data with a fo
 
 ## Usage
 
-- The `notebooks/main.ipynb` file contains the primary analysis workflow.
-- `scripts/plot.py` can be used to generate visualizations, and `utility.py` contains helper functions for data processing.
+- The [`notebooks/main.ipynb`](https://github.com/SamrawitMM/NovaSentimentAnalytics/blob/master/notebooks/main.ipynb) file contains the primary analysis workflow.
+- [`scripts/plot.py`](https://github.com/SamrawitMM/NovaSentimentAnalytics/blob/master/scripts/plot.py) can be used to generate visualizations, and [`scripts/utility.py`](https://github.com/SamrawitMM/NovaSentimentAnalytics/blob/master/scripts/utility.py) contains helper functions for data processing.
 
 ## License
 
