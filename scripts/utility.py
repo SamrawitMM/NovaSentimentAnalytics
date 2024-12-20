@@ -1,15 +1,12 @@
 import pandas as pd
 import nltk
-
 from nltk.corpus import words, stopwords
 from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import word_tokenize
 import string
 import re
-
 from textblob import TextBlob
 from joblib import Parallel, delayed
-
 import numpy as np
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.decomposition import LatentDirichletAllocation
@@ -19,7 +16,6 @@ from sentence_transformers import SentenceTransformer
 
 
 # Ensure you download necessary NLTK resources
-import nltk
 nltk.download('words')
 nltk.download('stopwords')
 nltk.download('punkt')
